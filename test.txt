@@ -1,0 +1,1 @@
+﻿KnowledgeSilo is a multi-tenant RAG platform. It allows companies to upload documents and ask questions about them. Each tenant's data is completely isolated from other tenants using PostgreSQL with pgvector for embeddings.
