@@ -9,6 +9,7 @@ class RAGState(TypedDict):
     tenant_id: uuid.UUID
     query: str
     db: AsyncSession
+    document_ids: list[uuid.UUID] | None
     chunks: list
     answer: str
     citations: list[dict]
@@ -16,7 +17,10 @@ class RAGState(TypedDict):
 
 async def retrieve_node(state: RAGState) -> RAGState:
     chunks = await retrieve_relevant_chunks(
-        db=state["db"], tenant_id=state["tenant_id"], query=state["query"]
+        db=state["db"],
+        tenant_id=state["tenant_id"],
+        query=state["query"],
+        document_ids=state.get("document_ids"),
     )
     state["chunks"] = chunks
     return state

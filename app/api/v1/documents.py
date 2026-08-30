@@ -8,6 +8,8 @@ from app.ingestion.loaders.txt_loader import load_txt
 from app.ingestion.loaders.pdf_loader import load_pdf
 from app.ingestion.loaders.docx_loader import load_docx
 from app.tasks.ingestion_tasks import process_document_task
+from datetime import datetime, timezone
+from app.db.models.mongo_collections import document_metadata_collection
 
 router = APIRouter()
 
@@ -35,8 +37,29 @@ async def upload_document(
         text=text,
     )
 
+    await document_metadata_collection.insert_one({
+        "document_id": str(document_id),
+        "tenant_id": str(tenant.id),
+        "filename": file.filename,
+        "uploaded_at": datetime.now(timezone.utc),
+    })
+
     return {
         "document_id": str(document_id),
         "filename": file.filename,
         "status": "processing",
     }
+
+@router.get("/")
+async def list_documents(tenant: Tenant = Depends(get_current_tenant)):
+    cursor = document_metadata_collection.find({"tenant_id": str(tenant.id)})
+    documents = await cursor.to_list(length=100)
+
+    return [
+        {
+            "document_id": doc["document_id"],
+            "filename": doc["filename"],
+            "uploaded_at": doc["uploaded_at"].isoformat(),
+        }
+        for doc in documents
+    ]
