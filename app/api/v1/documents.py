@@ -10,6 +10,7 @@ from app.ingestion.loaders.docx_loader import load_docx
 from app.tasks.ingestion_tasks import process_document_task
 from datetime import datetime, timezone
 from app.db.models.mongo_collections import document_metadata_collection
+from sqlalchemy import delete
 
 router = APIRouter()
 
@@ -63,3 +64,25 @@ async def list_documents(tenant: Tenant = Depends(get_current_tenant)):
         }
         for doc in documents
     ]
+
+@router.delete("/{document_id}")
+async def delete_document(
+    document_id: str,
+    tenant: Tenant = Depends(get_current_tenant),
+    db: AsyncSession = Depends(get_db),
+):
+    doc_uuid = uuid.UUID(document_id)
+
+    await db.execute(
+        delete(DocumentVector).where(
+            DocumentVector.document_id == doc_uuid,
+            DocumentVector.tenant_id == tenant.id,
+        )
+    )
+    await db.commit()
+
+    await document_metadata_collection.delete_one(
+        {"document_id": document_id, "tenant_id": str(tenant.id)}
+    )
+
+    return {"document_id": document_id, "status": "deleted"}
