@@ -8,6 +8,7 @@ from app.db.models import Tenant
 from app.api.v1.documents import router as documents_router
 from app.api.v1.query import router as query_router
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.v1.usage import router as usage_router
 
 app = FastAPI(title="KnowledgeSilo API")
 
@@ -39,3 +40,5 @@ async def read_current_tenant(tenant: Tenant = Depends(get_current_tenant)):
 app.include_router(documents_router, prefix="/api/v1/documents", tags=["documents"])
 
 app.include_router(query_router, prefix="/api/v1/query", tags=["query"])
+
+app.include_router(usage_router, prefix="/api/v1/usage", tags=["usage"])

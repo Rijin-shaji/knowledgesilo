@@ -5,8 +5,11 @@ from app.db.postgres import get_db
 from app.db.models import ApiKey, Tenant
 from app.core.security import verify_api_key
 from app.core.rate_limit import check_rate_limit
+from fastapi import Request
+from app.db.models import UsageLog
 
 async def get_current_tenant(
+    request: Request,
     x_api_key: str = Header(..., alias="X-API-Key"),
     db: AsyncSession = Depends(get_db),
 ) -> Tenant:
@@ -28,4 +31,11 @@ async def get_current_tenant(
     await check_rate_limit(str(matched_key.id))
 
     tenant = await db.get(Tenant, matched_key.tenant_id)
+    usage_row = UsageLog(
+        tenant_id=matched_key.tenant_id,
+        api_key_id=matched_key.id,
+        endpoint=request.url.path,
+    )
+    db.add(usage_row)
+    await db.commit()
     return tenant
