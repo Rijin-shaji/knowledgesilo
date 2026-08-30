@@ -7,8 +7,17 @@ from app.core.dependencies import get_current_tenant
 from app.db.models import Tenant
 from app.api.v1.documents import router as documents_router
 from app.api.v1.query import router as query_router
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="KnowledgeSilo API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 async def health_check():
