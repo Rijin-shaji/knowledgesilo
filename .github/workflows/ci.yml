@@ -51,6 +51,15 @@ jobs:
         run: |
           PGPASSWORD=testpass psql -h localhost -U knowledgesilo -d knowledgesilo -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql+asyncpg://knowledgesilo:testpass@localhost:5432/knowledgesilo
+          MONGO_URL: mongodb://localhost:27017/knowledgesilo
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET_KEY: test_secret_key_for_ci
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: alembic upgrade head
+        
       - name: Run tests
         env:
           DATABASE_URL: postgresql+asyncpg://knowledgesilo:testpass@localhost:5432/knowledgesilo
