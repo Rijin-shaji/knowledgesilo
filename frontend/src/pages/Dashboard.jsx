@@ -3,6 +3,7 @@ import FileUpload from "../components/FileUpload";
 import DocumentList from "../components/DocumentList";
 import ChatInterface from "../components/ChatInterface";
 import UsageStats from "../components/UsageStats";
+import ApiKeyGenerator from "../components/ApiKeyGenerator";
 
 function Dashboard() {
   const tenantName = localStorage.getItem("tenantName");
@@ -12,6 +13,8 @@ function Dashboard() {
   return (
     <div>
       <h1>Welcome, {tenantName}</h1>
+      <ApiKeyGenerator />
+      <hr />
       <UsageStats />
       <hr />
       <FileUpload onUploadComplete={() => setRefreshKey((prev) => prev + 1)} />
