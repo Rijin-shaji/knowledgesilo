@@ -15,7 +15,7 @@ class UsageLog(Base):
         UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
     )
     api_key_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("api_keys.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("api_keys.id"), nullable=True
     )
     endpoint: Mapped[str] = mapped_column(String(100), nullable=False)
     tokens_used: Mapped[int] = mapped_column(Integer, default=0)

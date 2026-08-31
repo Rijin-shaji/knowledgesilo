@@ -9,6 +9,8 @@ from app.api.v1.documents import router as documents_router
 from app.api.v1.query import router as query_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.usage import router as usage_router
+from app.api.v1.auth import router as auth_router
+from app.api.v1.api_keys import router as api_keys_router
 
 app = FastAPI(title="KnowledgeSilo API")
 
@@ -42,3 +44,7 @@ app.include_router(documents_router, prefix="/api/v1/documents", tags=["document
 app.include_router(query_router, prefix="/api/v1/query", tags=["query"])
 
 app.include_router(usage_router, prefix="/api/v1/usage", tags=["usage"])
+
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+
+app.include_router(api_keys_router, prefix="/api/v1/api-keys", tags=["api-keys"])
