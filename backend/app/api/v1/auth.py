@@ -1,19 +1,16 @@
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
-
+from pydantic import BaseModel, EmailStr, Field
 from app.db.postgres import async_session
 from app.db.models import Tenant
 from app.core.security import hash_api_key, verify_api_key, create_access_token
 
 router = APIRouter()
 
-
 class SignupRequest(BaseModel):
     name: str
     email: EmailStr
-    password: str
-
+    password: str = Field(min_length=8)
 
 class LoginRequest(BaseModel):
     email: EmailStr
