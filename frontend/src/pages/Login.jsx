@@ -9,11 +9,21 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-
+        if (isSignup) {
+      if (password.length < 8) {
+        setError("Password must be at least 8 characters.");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
+    }
     try {
       const endpoint = isSignup ? "/auth/signup" : "/auth/login";
       const body = isSignup ? { name, email, password } : { email, password };
@@ -54,6 +64,14 @@ function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        {isSignup && (
+  <input
+    type="password"
+    placeholder="Confirm password"
+    value={confirmPassword}
+    onChange={(e) => setConfirmPassword(e.target.value)}
+  />
+)}
         <button type="submit">{isSignup ? "Sign Up" : "Log In"}</button>
         {error && <p>{error}</p>}
       </form>
