@@ -1,10 +1,14 @@
 import { useState } from "react";
+import "./ChatInterface.css";
+import apiClient from "../api/client";
 
-function ChatInterface({ documentIds }) {
+function ChatInterface({ documentIds, onDocumentAdded }) {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
-
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [urlValue, setUrlValue] = useState("");
   async function handleAsk(e) {
     e.preventDefault();
     if (!question.trim()) return;
@@ -15,14 +19,19 @@ function ChatInterface({ documentIds }) {
     setQuestion("");
     setIsStreaming(true);
 
+    const authToken = localStorage.getItem("authToken");
     const apiKey = localStorage.getItem("apiKey");
+
+    const headers = { "Content-Type": "application/json" };
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    } else if (apiKey) {
+      headers["X-API-Key"] = apiKey;
+    }
 
     const response = await fetch("http://127.0.0.1:8000/api/v1/query/stream", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-API-Key": apiKey,
-      },
+      headers,
       body: JSON.stringify({
         question: userMessage.content,
         document_ids: documentIds.length > 0 ? documentIds : null,
@@ -56,26 +65,152 @@ function ChatInterface({ documentIds }) {
     setIsStreaming(false);
   }
 
-  return (
-    <div>
-      <div style={{ minHeight: "200px", marginBottom: "16px" }}>
+  async function handleAttach(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const systemMessage = { role: "system", content: `Uploading ${file.name}...` };
+    setMessages((prev) => [...prev, systemMessage]);
+
+    try {
+      await apiClient.post("/api/v1/documents/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setMessages((prev) => [
+        ...prev.slice(0, -1),
+        { role: "system", content: `${file.name} uploaded and processing.` },
+      ]);
+      onDocumentAdded();
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev.slice(0, -1),
+        { role: "system", content: `Failed to upload ${file.name}.` },
+      ]);
+    }
+
+    e.target.value = "";
+  }
+
+  async function handleAttachUrl(e) {
+  e.preventDefault();
+  if (!urlValue.trim()) return;
+
+  const systemMessage = { role: "system", content: `Adding ${urlValue}...` };
+  setMessages((prev) => [...prev, systemMessage]);
+  setShowUrlInput(false);
+  const submittedUrl = urlValue;
+  setUrlValue("");
+
+  try {
+    await apiClient.post("/api/v1/documents/upload-url", { url: submittedUrl });
+    setMessages((prev) => [
+      ...prev.slice(0, -1),
+      { role: "system", content: `${submittedUrl} added and processing.` },
+    ]);
+    onDocumentAdded();
+  } catch (err) {
+    const message = err.response?.data?.detail || "Failed to add that URL.";
+    setMessages((prev) => [...prev.slice(0, -1), { role: "system", content: message }]);
+  }
+}
+
+    return (
+    <div className="chat-container">
+      <div className="chat-messages">
+        {messages.length === 0 && (
+          <div className="chat-empty-state">
+            <h2>Ask your documents anything</h2>
+            <p>Select a document, or search across all of them.</p>
+          </div>
+        )}
+
         {messages.map((msg, i) => (
-          <p key={i}>
-            <strong>{msg.role === "user" ? "You" : "KnowledgeSilo"}:</strong> {msg.content}
-          </p>
+          <div
+            key={i}
+            className={`chat-message ${
+              msg.role === "user"
+                ? "chat-message-user"
+                : msg.role === "system"
+                ? "chat-message-system"
+                : "chat-message-ai"
+            }`}
+          >
+            {msg.role !== "system" && (
+              <span className="chat-message-label">
+                {msg.role === "user" ? "You" : "DocuVault AI"}
+              </span>
+            )}
+            <p>{msg.content}</p>
+          </div>
         ))}
       </div>
 
-      <form onSubmit={handleAsk}>
+      {showUrlInput && (
+        <form onSubmit={handleAttachUrl} className="chat-url-form">
+          <input
+            type="url"
+            placeholder="Paste a webpage URL..."
+            value={urlValue}
+            onChange={(e) => setUrlValue(e.target.value)}
+            autoFocus
+          />
+          <button type="submit">Add</button>
+          <button type="button" onClick={() => setShowUrlInput(false)}>
+            Cancel
+          </button>
+        </form>
+      )}
+
+      <form onSubmit={handleAsk} className="chat-input-form">
+        <div className="chat-attach-wrapper">
+          <button
+            type="button"
+            className="chat-attach-btn"
+            onClick={() => setShowAttachMenu(!showAttachMenu)}
+          >
+            📎
+          </button>
+
+          {showAttachMenu && (
+            <div className="chat-attach-menu">
+              <label className="chat-attach-option">
+                Upload a file
+                <input
+                  type="file"
+                  onChange={(e) => {
+                    handleAttach(e);
+                    setShowAttachMenu(false);
+                  }}
+                  style={{ display: "none" }}
+                  accept=".pdf,.docx,.txt"
+                />
+              </label>
+              <button
+                type="button"
+                className="chat-attach-option"
+                onClick={() => {
+                  setShowUrlInput(true);
+                  setShowAttachMenu(false);
+                }}
+              >
+                Add from URL
+              </button>
+            </div>
+          )}
+        </div>
+
         <input
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask a question about your documents..."
+          placeholder="Ask anything about your documents..."
           disabled={isStreaming}
         />
         <button type="submit" disabled={isStreaming}>
-          {isStreaming ? "Thinking..." : "Ask"}
+          {isStreaming ? "..." : "Send"}
         </button>
       </form>
     </div>

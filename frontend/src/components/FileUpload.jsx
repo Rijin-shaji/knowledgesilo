@@ -5,6 +5,7 @@ function FileUpload({ onUploadComplete }){
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [urlInput, setUrlInput] = useState("");
 
   async function uploadFile(file) {
     const formData = new FormData();
@@ -22,6 +23,26 @@ function FileUpload({ onUploadComplete }){
   } catch (err) {
     setMessages((prev) => [...prev, `${file.name}: upload failed`]);
   }
+}
+
+  async function uploadUrl(e) {
+  e.preventDefault();
+  if (!urlInput.trim()) return;
+
+  setUploading(true);
+  try {
+    const response = await apiClient.post("/api/v1/documents/upload-url", { url: urlInput });
+    setMessages((prev) => [
+      ...prev,
+      `${urlInput}: uploaded, processing (document_id: ${response.data.document_id})`,
+    ]);
+    onUploadComplete();
+    setUrlInput("");
+  } catch (err) {
+    const message = err.response?.data?.detail || "upload failed";
+    setMessages((prev) => [...prev, `${urlInput}: ${message}`]);
+  }
+  setUploading(false);
 }
 
   async function handleFiles(fileList) {
@@ -67,7 +88,16 @@ function FileUpload({ onUploadComplete }){
           onChange={handleFileInput}
         />
       </div>
-
+      <form onSubmit={uploadUrl} style={{ marginTop: "12px", display: "flex", gap: "8px" }}>
+  <input
+    type="url"
+    placeholder="Or paste a URL to add a webpage"
+    value={urlInput}
+    onChange={(e) => setUrlInput(e.target.value)}
+    style={{ flex: 1 }}
+  />
+  <button type="submit" disabled={uploading}>Add</button>
+</form>
       {uploading && <p>Uploading...</p>}
 
       <ul>

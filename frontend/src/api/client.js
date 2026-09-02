@@ -5,10 +5,15 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
+  const authToken = localStorage.getItem("authToken");
   const apiKey = localStorage.getItem("apiKey");
-  if (apiKey) {
+
+  if (authToken) {
+    config.headers["Authorization"] = `Bearer ${authToken}`;
+  } else if (apiKey) {
     config.headers["X-API-Key"] = apiKey;
   }
+
   return config;
 });
 
