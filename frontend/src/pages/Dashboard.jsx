@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import FileUpload from "../components/FileUpload";
 import DocumentList from "../components/DocumentList";
 import ChatInterface from "../components/ChatInterface";
 import UsageStats from "../components/UsageStats";
@@ -65,16 +64,15 @@ function Dashboard() {
 )}
 
         {activeView === "documents" && (
-          <div className="dashboard-view">
-            <h2>Documents</h2>
-            <FileUpload onUploadComplete={() => setRefreshKey((prev) => prev + 1)} />
-            <DocumentList
-              key={refreshKey}
-              selectedIds={selectedIds}
-              onSelectionChange={setSelectedIds}
-            />
-          </div>
-        )}
+  <div className="dashboard-view">
+    <h2>Documents</h2>
+    <DocumentList
+      key={refreshKey}
+      selectedIds={selectedIds}
+      onSelectionChange={setSelectedIds}
+    />
+  </div>
+)}
 
         {activeView === "usage" && (
           <div className="dashboard-view">

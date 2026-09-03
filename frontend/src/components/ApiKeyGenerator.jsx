@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import apiClient from "../api/client";
+import "./ApiKeyGenerator.css";
 
 function ApiKeyGenerator() {
   const [keys, setKeys] = useState([]);
@@ -46,21 +47,36 @@ function ApiKeyGenerator() {
     fetchKeys();
   }
 
-  return (
+   return (
     <div>
       <h3>API Keys</h3>
-      <button onClick={() => setShowModal(true)}>+ Create New API Key</button>
+      <button className="btn-primary" onClick={() => setShowModal(true)}>
+        + Create New API Key
+      </button>
 
-      <ul>
-        {keys.map((k) => (
-          <li key={k.id}>
-            {k.name || "(unnamed)"} — {k.purpose || "no purpose set"} — ****{k.key_suffix || "----"} — created {new Date(k.created_at).toLocaleDateString()}
-          </li>
-        ))}
-      </ul>
+      <table className="api-keys-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Purpose</th>
+            <th>Key</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {keys.map((k) => (
+            <tr key={k.id}>
+              <td>{k.name || "(unnamed)"}</td>
+              <td>{k.purpose || "—"}</td>
+              <td className="api-keys-masked">••••{k.key_suffix || "----"}</td>
+              <td>{new Date(k.created_at).toLocaleDateString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       {showModal && (
-        <div style={{ border: "1px solid #666", padding: "20px", marginTop: "10px" }}>
+        <div className="api-key-modal">
           {!generatedKey ? (
             <form onSubmit={handleCreate}>
               <div>
@@ -81,16 +97,20 @@ function ApiKeyGenerator() {
                   required
                 />
               </div>
-              <button type="submit">Generate</button>
-              <button type="button" onClick={handleClose}>Cancel</button>
+              <button type="submit" className="btn-primary">Generate</button>
+              <button type="button" className="btn-secondary" onClick={handleClose}>
+                Cancel
+              </button>
             </form>
           ) : (
             <div>
               <p>Your new API key — save it now, it won't be shown again:</p>
               <code>{generatedKey}</code>
-              <button onClick={handleCopy}>{copied ? "Copied!" : "Copy"}</button>
+              <button className="btn-secondary" onClick={handleCopy}>
+                {copied ? "Copied!" : "Copy"}
+              </button>
               <br />
-              <button onClick={handleClose}>Done</button>
+              <button className="btn-primary" onClick={handleClose}>Done</button>
             </div>
           )}
         </div>

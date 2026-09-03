@@ -1,0 +1,63 @@
+.usage-container {
+  margin-bottom: 8px;
+}
+
+.usage-total-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.usage-total-number {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.usage-total-label {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.usage-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.usage-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 32px;
+  align-items: center;
+  gap: 12px;
+}
+
+.usage-row-label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.usage-bar-track {
+  height: 8px;
+  background: var(--color-bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.usage-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent-start), var(--color-accent-end));
+  border-radius: 4px;
+}
+
+.usage-row-count {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}

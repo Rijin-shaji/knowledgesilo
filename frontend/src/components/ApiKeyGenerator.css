@@ -1,0 +1,31 @@
+.api-keys-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.api-keys-table th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.api-keys-table td {
+  padding: 14px 12px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.api-keys-masked {
+  font-family: monospace;
+  color: var(--color-text-secondary);
+}
+
+.api-keys-table tr:last-child td {
+  border-bottom: none;
+}
