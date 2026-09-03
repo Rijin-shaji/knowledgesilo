@@ -1,5 +1,5 @@
 import uuid
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, UploadFile, File, Depends ,HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.postgres import get_db
 from app.db.models import Tenant, DocumentVector
@@ -11,6 +11,8 @@ from app.tasks.ingestion_tasks import process_document_task
 from datetime import datetime, timezone
 from app.db.models.mongo_collections import document_metadata_collection
 from sqlalchemy import delete
+from pydantic import BaseModel
+from app.ingestion.loaders.url_loader import load_url
 
 router = APIRouter()
 
@@ -48,6 +50,42 @@ async def upload_document(
     return {
         "document_id": str(document_id),
         "filename": file.filename,
+        "status": "processing",
+    }
+
+class UploadUrlRequest(BaseModel):
+    url: str
+
+
+@router.post("/upload-url")
+async def upload_document_from_url(
+    body: UploadUrlRequest,
+    tenant: Tenant = Depends(get_current_tenant),
+    db: AsyncSession = Depends(get_db),
+):
+    text = await load_url(body.url)
+
+    if not text:
+        return {"error": "Could not extract readable content from that URL."}
+
+    document_id = uuid.uuid4()
+
+    await document_metadata_collection.insert_one({
+        "document_id": str(document_id),
+        "tenant_id": str(tenant.id),
+        "filename": body.url,
+        "uploaded_at": datetime.now(timezone.utc),
+    })
+
+    process_document_task.delay(
+        tenant_id=str(tenant.id),
+        document_id=str(document_id),
+        text=text,
+    )
+
+    return {
+        "document_id": str(document_id),
+        "filename": body.url,
         "status": "processing",
     }
 
